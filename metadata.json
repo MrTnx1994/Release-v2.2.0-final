@@ -1,0 +1,6 @@
+{
+  "name": "app v2.2.0",
+  "description": "سامانه جامع و یکپارچه برنامه‌ریزی فروش، مدیریت انبار، پیش‌بینی هوشمند تولید و توزیع برنا تجارت باور - نگارش 2.2.0",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
