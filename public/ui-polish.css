@@ -1,7 +1,7 @@
 /* UI polish layered on top of the v2.2.1 stable theme. */
 body {
-  /* Stronger pastel blue in the center, softly fading toward the edges. */
-  background: radial-gradient(circle at 50% 45%, #93c5fd 0%, #a9d5fb 28%, #c7e2fa 58%, #e7f3fc 82%, #f0f9ff 100%) !important;
+  /* Same pastel-blue family: noticeably stronger in the center, with a much softer 40%-broader fade toward the edges. */
+  background: radial-gradient(circle at 50% 46%, #8fc1f5 0%, #9ccaf7 22%, #afd5f8 45%, #c6e1fa 68%, #deeffc 84%, #eef8fe 100%) !important;
 }
 
 .dark body {
