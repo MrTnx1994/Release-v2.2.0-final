@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import {
   getTodayShamsi,
   getTomorrowShamsi,
@@ -20,12 +20,8 @@ function getInitialDate(todayShamsi: ShamsiDate): ShamsiDate {
     if (saved) {
       const [year, month, day] = saved.split("/").map(Number);
       if (
-        Number.isInteger(year) &&
-        Number.isInteger(month) &&
-        Number.isInteger(day) &&
-        year >= 1300 && year <= 1600 &&
-        month >= 1 && month <= 12 &&
-        day >= 1 && day <= 31
+        Number.isInteger(year) && Number.isInteger(month) && Number.isInteger(day) &&
+        year >= 1300 && year <= 1600 && month >= 1 && month <= 12 && day >= 1 && day <= 31
       ) {
         return { year, month, day };
       }
@@ -34,12 +30,7 @@ function getInitialDate(todayShamsi: ShamsiDate): ShamsiDate {
     // Ignore storage errors and use the normal default.
   }
 
-  return getNextWorkingDayShamsi(
-    todayShamsi.year,
-    todayShamsi.month,
-    todayShamsi.day,
-    isOfficialHoliday
-  );
+  return getNextWorkingDayShamsi(todayShamsi.year, todayShamsi.month, todayShamsi.day, isOfficialHoliday);
 }
 
 export function useDateManagement() {
@@ -62,9 +53,7 @@ export function useDateManagement() {
     [shamsiYear, shamsiMonth, shamsiDay]
   );
 
-  // Persist the user's selected date. It only changes when the user actually
-  // moves the planning date; a refresh must not silently reset it.
-  useMemo(() => {
+  useEffect(() => {
     try {
       localStorage.setItem(DATE_STORAGE_KEY, formattedDate);
     } catch (e) {
@@ -80,38 +69,28 @@ export function useDateManagement() {
   const handlePrevDay = useCallback(() => {
     const prevStr = getPrevShamsiDate(shamsiYear, shamsiMonth, shamsiDay);
     const [y, m, d] = prevStr.split("/").map(Number);
-    setShamsiYear(y);
-    setShamsiMonth(m);
-    setShamsiDay(d);
+    setShamsiYear(y); setShamsiMonth(m); setShamsiDay(d);
   }, [shamsiYear, shamsiMonth, shamsiDay]);
 
   const handleNextDay = useCallback(() => {
     const nextStr = getTomorrowShamsiDate(shamsiYear, shamsiMonth, shamsiDay);
     const [y, m, d] = nextStr.split("/").map(Number);
-    setShamsiYear(y);
-    setShamsiMonth(m);
-    setShamsiDay(d);
+    setShamsiYear(y); setShamsiMonth(m); setShamsiDay(d);
   }, [shamsiYear, shamsiMonth, shamsiDay]);
 
   const handleJumpNextWorkingDay = useCallback(() => {
     const target = getNextWorkingDayShamsi(shamsiYear, shamsiMonth, shamsiDay, isOfficialHoliday);
-    setShamsiYear(target.year);
-    setShamsiMonth(target.month);
-    setShamsiDay(target.day);
+    setShamsiYear(target.year); setShamsiMonth(target.month); setShamsiDay(target.day);
   }, [shamsiYear, shamsiMonth, shamsiDay]);
 
   const handleJumpPrevWorkingDay = useCallback(() => {
     const target = getPrevWorkingDayShamsi(shamsiYear, shamsiMonth, shamsiDay, isOfficialHoliday);
-    setShamsiYear(target.year);
-    setShamsiMonth(target.month);
-    setShamsiDay(target.day);
+    setShamsiYear(target.year); setShamsiMonth(target.month); setShamsiDay(target.day);
   }, [shamsiYear, shamsiMonth, shamsiDay]);
 
   const handleJumpToday = useCallback(() => {
     const today = getTodayShamsi();
-    setShamsiYear(today.year);
-    setShamsiMonth(today.month);
-    setShamsiDay(today.day);
+    setShamsiYear(today.year); setShamsiMonth(today.month); setShamsiDay(today.day);
   }, []);
 
   return {
