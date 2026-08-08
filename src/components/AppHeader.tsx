@@ -28,8 +28,12 @@ export function AppHeader({ user, role, logout, isDarkMode, setIsDarkMode, today
     ["logs", FileText, "لاگ تغییرات", role === "admin"], ["users", Users, "کاربران", role === "admin"], ["backup", Archive, "پشتیبان‌گیری", role === "admin"]
   ] as const;
 
+  const lightBackground = "radial-gradient(circle at 50% 45%, #93c5fd 0%, #a9d5fb 28%, #c7e2fa 58%, #e7f3fc 82%, #f0f9ff 100%)";
+  const darkBackground = "linear-gradient(115deg, #0f172a 0%, #172554 48%, #064e3b 100%)";
+
   return <>
-    <header className="bg-white/88 dark:bg-slate-900/88 backdrop-blur-xl border-b border-slate-200/90 dark:border-slate-800/90 py-2.5 px-3 sm:px-5 flex flex-col xl:flex-row-reverse justify-between items-stretch xl:items-center gap-2.5 no-print shrink-0 shadow-sm transition-colors duration-300" dir="rtl">
+    <div aria-hidden="true" className="fixed inset-0 z-0 pointer-events-none" style={{ background: isDarkMode ? darkBackground : lightBackground }} />
+    <header className="relative z-10 bg-white/88 dark:bg-slate-900/88 backdrop-blur-xl border-b border-slate-200/90 dark:border-slate-800/90 py-2.5 px-3 sm:px-5 flex flex-col xl:flex-row-reverse justify-between items-stretch xl:items-center gap-2.5 no-print shrink-0 shadow-sm transition-colors duration-300" dir="rtl">
       <div className="flex items-center gap-3 min-w-0 xl:flex-1">
         <div className="bg-gradient-to-tr from-cyan-600 to-blue-700 p-2 rounded-xl shadow-md text-white shrink-0"><Truck className="w-5 h-5" /></div>
         <div className="min-w-0 flex-1">
@@ -71,7 +75,7 @@ export function AppHeader({ user, role, logout, isDarkMode, setIsDarkMode, today
       </div>
     </header>
 
-    <nav className="bg-white/95 dark:bg-slate-900/95 border-b border-slate-200 dark:border-slate-800 px-3 sm:px-6 overflow-x-auto flex justify-start items-center gap-1.5 no-print shrink-0 py-2 sm:py-2.5" dir="rtl">
+    <nav className="relative z-10 bg-white/95 dark:bg-slate-900/95 border-b border-slate-200 dark:border-slate-800 px-3 sm:px-6 overflow-x-auto flex justify-start items-center gap-1.5 no-print shrink-0 py-2 sm:py-2.5" dir="rtl">
       {navItems.map(([key, Icon, label, visible]) => visible && <button key={key} onClick={() => setActiveTab(key)} className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition shrink-0 cursor-pointer ${activeTab === key ? "bg-cyan-50 dark:bg-cyan-950/50 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800 shadow-xs" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800/60"}`}><Icon className="w-4 h-4" />{label}</button>)}
     </nav>
   </>;
