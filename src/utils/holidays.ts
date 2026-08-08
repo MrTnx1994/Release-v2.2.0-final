@@ -1,5 +1,6 @@
-// Official Iranian public holidays database (1403, 1404, 1405 Shamsi).
-// Fridays are also considered non-working days by calendar rules.
+// Official Iranian public holidays database.
+// 1405 dates are aligned with the published Iranian 1405 calendar.
+// Fridays are handled separately as weekly non-working days.
 
 export const HOLIDAY_DICTIONARY: Record<string, string> = {
   // === سال ۱۴۰۳ ===
@@ -59,30 +60,31 @@ export const HOLIDAY_DICTIONARY: Record<string, string> = {
   "1404/12/30": "آخرین روز سال (تعطیل رسمی)",
 
   // === سال ۱۴۰۵ ===
-  "1405/01/01": "عید نوروز",
-  "1405/01/02": "عید نوروز",
+  "1405/01/01": "عید نوروز / عید سعید فطر",
+  "1405/01/02": "عید نوروز / تعطیل به مناسبت عید سعید فطر",
   "1405/01/03": "عید نوروز",
   "1405/01/04": "عید نوروز",
-  "1405/01/12": "روز جمهوری اسلامی",
+  "1405/01/12": "روز جمهوری اسلامی ایران",
   "1405/01/13": "روز طبیعت (سیزده‌بدر)",
-  "1405/01/30": "عید سعید فطر",
-  "1405/01/31": "تعطیل عید سعید فطر",
-  "1405/02/23": "شهادت امام جعفر صادق (ع)",
+  "1405/01/25": "شهادت امام جعفر صادق (ع)",
   "1405/03/06": "عید سعید قربان",
-  "1405/03/14": "رحلت حضرت امام خمینی (ره) / عید غدیر خم",
+  "1405/03/14": "رحلت حضرت امام خمینی (ره) / عید سعید غدیر خم",
   "1405/03/15": "قیام ۱۵ خرداد",
-  "1405/04/04": "تاسوعای حسینی",
-  "1405/04/05": "عاشورای حسینی",
+  "1405/04/03": "تاسوعای حسینی",
+  "1405/04/04": "عاشورای حسینی",
   "1405/05/13": "اربعین حسینی",
   "1405/05/21": "رحلت رسول اکرم (ص) و شهادت امام حسن مجتبی (ع)",
-  "1405/05/23": "شهادت امام رضا (ع)",
-  "1405/05/31": "شهادت امام حسن عسکری (ع)",
+  "1405/05/22": "شهادت امام رضا (ع)",
+  "1405/05/30": "شهادت امام حسن عسکری (ع) / آغاز امامت صاحب زمان (عج)",
   "1405/06/08": "ولادت حضرت رسول اکرم (ص) و امام جعفر صادق (ع)",
-  "1405/08/23": "شهادت حضرت فاطمه زهرا (س)",
-  "1405/10/03": "ولادت امام علی (ع)",
-  "1405/10/17": "مبعث حضرت رسول اکرم (ص)",
+  "1405/08/22": "شهادت حضرت فاطمه زهرا (س)",
+  "1405/10/02": "ولادت حضرت امام علی (ع) و روز پدر",
+  "1405/10/16": "مبعث حضرت رسول اکرم (ص)",
   "1405/11/04": "ولادت حضرت قائم (عج) و نیمه شعبان",
   "1405/11/22": "پیروزی انقلاب اسلامی ایران",
+  "1405/12/09": "شهادت حضرت علی (ع)",
+  "1405/12/19": "عید سعید فطر",
+  "1405/12/20": "تعطیل به مناسبت عید سعید فطر",
   "1405/12/29": "روز ملی شدن صنعت نفت ایران",
 };
 
@@ -90,7 +92,6 @@ export const OFFICIAL_HOLIDAYS: string[] = Object.keys(HOLIDAY_DICTIONARY);
 
 export function isOfficialHoliday(dateStr: string): boolean {
   if (!dateStr) return false;
-  // Normalize formatted date YYYY/MM/DD
   const parts = dateStr.split("/").map((p) => p.padStart(2, "0"));
   if (parts.length === 3) {
     const normalized = `${parts[0]}/${parts[1]}/${parts[2]}`;
@@ -117,9 +118,7 @@ export async function fetchHolidaysFromServer() {
     const res = await fetch('/api/holidays');
     if (res.ok) {
       const data = await res.json();
-      if (data && typeof data === 'object') {
-        Object.assign(HOLIDAY_DICTIONARY, data);
-      }
+      if (data && typeof data === 'object') Object.assign(HOLIDAY_DICTIONARY, data);
     }
   } catch (e) {
     console.error("Failed to fetch holidays from server:", e);
@@ -127,4 +126,3 @@ export async function fetchHolidaysFromServer() {
     isFetchingHolidays = false;
   }
 }
-
