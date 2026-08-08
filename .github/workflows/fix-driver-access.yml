@@ -1,0 +1,60 @@
+name: One-time driver access fix
+
+on:
+  push:
+    branches:
+      - ui-calendar-v2.2.2
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ui-calendar-v2.2.2
+          fetch-depth: 0
+
+      - name: Fix driver dashboard access and persist tab
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('src/App.tsx')
+          s = p.read_text(encoding='utf-8')
+
+          old = '''      const saved = sessionStorage.getItem("app_active_tab");'''
+          new = '''      const saved = localStorage.getItem("app_active_tab");'''
+          if old in s:
+              s = s.replace(old, new, 1)
+
+          old = '''      sessionStorage.setItem("app_active_tab", tab);'''
+          new = '''      localStorage.setItem("app_active_tab", tab);'''
+          if old in s:
+              s = s.replace(old, new, 1)
+
+          old = '''    if (role === "driver" && activeTab !== "drivers") {
+      setActiveTab("drivers");
+    } else if (role !== "admin" && (activeTab === "logs" || activeTab === "users" || activeTab === "backup")) {
+      setActiveTab("dashboard");
+    }'''
+          new = '''    if (role !== "admin" && (activeTab === "logs" || activeTab === "users" || activeTab === "backup")) {
+      setActiveTab("dashboard");
+    }'''
+          if old not in s:
+              raise SystemExit('Expected driver access block was not found; refusing to modify App.tsx')
+          s = s.replace(old, new, 1)
+          p.write_text(s, encoding='utf-8')
+          PY
+
+      - name: Commit fix and remove one-time workflow
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/App.tsx
+          git rm .github/workflows/fix-driver-access.yml
+          git commit -m "fix: allow drivers to access dashboard and persist tab"
+          git push origin HEAD:ui-calendar-v2.2.2
