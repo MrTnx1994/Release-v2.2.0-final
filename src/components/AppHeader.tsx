@@ -27,11 +27,7 @@ export function AppHeader({ user, role, logout, isDarkMode, setIsDarkMode, today
     ["logs", FileText, "لاگ تغییرات", role === "admin"], ["users", Users, "کاربران", role === "admin"], ["backup", Archive, "پشتیبان‌گیری", role === "admin"]
   ] as const;
 
-  const lightBackground = "radial-gradient(circle at 50% 45%, #93c5fd 0%, #a9d5fb 28%, #c7e2fa 58%, #e7f3fc 82%, #f0f9ff 100%)";
-  const darkBackground = "linear-gradient(115deg, #0f172a 0%, #172554 48%, #064e3b 100%)";
-
   return <>
-    <div aria-hidden="true" className="fixed inset-0 z-0 pointer-events-none" style={{ background: isDarkMode ? darkBackground : lightBackground }} />
     <header className="relative z-10 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border-b border-slate-200/60 dark:border-slate-800/60 py-2.5 px-3 sm:py-3.5 sm:px-6 flex flex-col md:flex-row justify-between items-center gap-3 sm:gap-4 no-print shrink-0 shadow-sm transition-colors duration-300" dir="rtl">
       <div className="flex items-center gap-2 sm:gap-3 min-w-0">
         <div className="bg-gradient-to-tr from-cyan-600 to-blue-700 p-2 sm:p-2.5 rounded-2xl shadow-md text-white shrink-0"><Truck className="w-5 h-5 sm:w-6 sm:h-6" /></div>
