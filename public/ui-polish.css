@@ -1,8 +1,9 @@
 /* UI polish layered on top of the v2.2.1 stable theme. */
 body {
-  background: linear-gradient(135deg, #e2f3ff 0%, #b9d8f5 52%, #8fb9e2 100%) !important;
+  /* Stronger pastel blue in the center, softly fading toward the edges. */
+  background: radial-gradient(circle at 50% 45%, #93c5fd 0%, #a9d5fb 28%, #c7e2fa 58%, #e7f3fc 82%, #f0f9ff 100%) !important;
 }
 
 .dark body {
-  background: linear-gradient(to left, #24104f, #17183f, #16325f, #07513f) !important;
+  background: linear-gradient(115deg, #0f172a 0%, #172554 48%, #064e3b 100%) !important;
 }
