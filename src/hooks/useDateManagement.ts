@@ -1,31 +1,60 @@
 import { useState, useMemo, useCallback } from "react";
-import { 
-  getTodayShamsi, 
-  getTomorrowShamsi, 
-  getNextWorkingDayShamsi, 
+import {
+  getTodayShamsi,
+  getTomorrowShamsi,
+  getNextWorkingDayShamsi,
   getPrevWorkingDayShamsi,
   getPrevShamsiDate,
   getTomorrowShamsiDate,
   getDateHolidayInfo,
-  SHAMSI_MONTHS 
 } from "../utils/shamsi";
 import { isOfficialHoliday } from "../utils/holidays";
+
+const DATE_STORAGE_KEY = "borna_selected_planning_date";
+
+type ShamsiDate = { year: number; month: number; day: number };
+
+function getInitialDate(todayShamsi: ShamsiDate): ShamsiDate {
+  try {
+    const saved = localStorage.getItem(DATE_STORAGE_KEY);
+    if (saved) {
+      const [year, month, day] = saved.split("/").map(Number);
+      if (
+        Number.isInteger(year) &&
+        Number.isInteger(month) &&
+        Number.isInteger(day) &&
+        year >= 1300 && year <= 1600 &&
+        month >= 1 && month <= 12 &&
+        day >= 1 && day <= 31
+      ) {
+        return { year, month, day };
+      }
+    }
+  } catch (e) {
+    // Ignore storage errors and use the normal default.
+  }
+
+  return getNextWorkingDayShamsi(
+    todayShamsi.year,
+    todayShamsi.month,
+    todayShamsi.day,
+    isOfficialHoliday
+  );
+}
 
 export function useDateManagement() {
   const todayShamsi = getTodayShamsi();
   const tomorrowShamsi = getTomorrowShamsi();
-  
-  // Default to next working day (skipping Fridays and official Iranian public holidays)
-  const nextWorkingDay = getNextWorkingDayShamsi(todayShamsi.year, todayShamsi.month, todayShamsi.day, isOfficialHoliday);
+  const initialDate = useMemo(() => getInitialDate(todayShamsi), [todayShamsi.year, todayShamsi.month, todayShamsi.day]);
 
-  const [shamsiYear, setShamsiYear] = useState<number>(nextWorkingDay.year);
-  const [shamsiMonth, setShamsiMonth] = useState<number>(nextWorkingDay.month);
-  const [shamsiDay, setShamsiDay] = useState<number>(nextWorkingDay.day);
+  const [shamsiYear, setShamsiYear] = useState<number>(initialDate.year);
+  const [shamsiMonth, setShamsiMonth] = useState<number>(initialDate.month);
+  const [shamsiDay, setShamsiDay] = useState<number>(initialDate.day);
 
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
-  const [tempYear, setTempYear] = useState<number>(nextWorkingDay.year);
-  const [tempMonth, setTempMonth] = useState<number>(nextWorkingDay.month);
-  const [tempDay, setTempDay] = useState<number>(nextWorkingDay.day);
+  const [tempYear, setTempYear] = useState<number>(initialDate.year);
+  const [tempMonth, setTempMonth] = useState<number>(initialDate.month);
+  const [tempDay, setTempDay] = useState<number>(initialDate.day);
   const [manualDateInput, setManualDateInput] = useState<string>("");
 
   const formattedDate = useMemo(
@@ -33,12 +62,21 @@ export function useDateManagement() {
     [shamsiYear, shamsiMonth, shamsiDay]
   );
 
+  // Persist the user's selected date. It only changes when the user actually
+  // moves the planning date; a refresh must not silently reset it.
+  useMemo(() => {
+    try {
+      localStorage.setItem(DATE_STORAGE_KEY, formattedDate);
+    } catch (e) {
+      // Ignore storage errors.
+    }
+  }, [formattedDate]);
+
   const currentDateHolidayInfo = useMemo(
     () => getDateHolidayInfo(shamsiYear, shamsiMonth, shamsiDay),
     [shamsiYear, shamsiMonth, shamsiDay]
   );
 
-  // Jump to single previous day
   const handlePrevDay = useCallback(() => {
     const prevStr = getPrevShamsiDate(shamsiYear, shamsiMonth, shamsiDay);
     const [y, m, d] = prevStr.split("/").map(Number);
@@ -47,7 +85,6 @@ export function useDateManagement() {
     setShamsiDay(d);
   }, [shamsiYear, shamsiMonth, shamsiDay]);
 
-  // Jump to single next day
   const handleNextDay = useCallback(() => {
     const nextStr = getTomorrowShamsiDate(shamsiYear, shamsiMonth, shamsiDay);
     const [y, m, d] = nextStr.split("/").map(Number);
@@ -56,7 +93,6 @@ export function useDateManagement() {
     setShamsiDay(d);
   }, [shamsiYear, shamsiMonth, shamsiDay]);
 
-  // Jump skipping holidays & Fridays to next working day
   const handleJumpNextWorkingDay = useCallback(() => {
     const target = getNextWorkingDayShamsi(shamsiYear, shamsiMonth, shamsiDay, isOfficialHoliday);
     setShamsiYear(target.year);
@@ -64,7 +100,6 @@ export function useDateManagement() {
     setShamsiDay(target.day);
   }, [shamsiYear, shamsiMonth, shamsiDay]);
 
-  // Jump skipping holidays & Fridays to previous working day
   const handleJumpPrevWorkingDay = useCallback(() => {
     const target = getPrevWorkingDayShamsi(shamsiYear, shamsiMonth, shamsiDay, isOfficialHoliday);
     setShamsiYear(target.year);
@@ -72,7 +107,6 @@ export function useDateManagement() {
     setShamsiDay(target.day);
   }, [shamsiYear, shamsiMonth, shamsiDay]);
 
-  // Jump to today
   const handleJumpToday = useCallback(() => {
     const today = getTodayShamsi();
     setShamsiYear(today.year);
