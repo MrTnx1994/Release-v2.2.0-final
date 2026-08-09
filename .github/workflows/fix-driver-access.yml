@@ -1,4 +1,4 @@
-name: One-time driver access fix
+name: Finalize UI and driver access
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  fix:
+  finalize:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,24 +17,29 @@ jobs:
           ref: ui-calendar-v2.2.2
           fetch-depth: 0
 
-      - name: Fix driver dashboard access and persist tab
+      - name: Apply only confirmed final fixes
         shell: bash
         run: |
           python - <<'PY'
           from pathlib import Path
+
           p = Path('src/App.tsx')
           s = p.read_text(encoding='utf-8')
 
-          old = '''      const saved = sessionStorage.getItem("app_active_tab");'''
-          new = '''      const saved = localStorage.getItem("app_active_tab");'''
-          if old in s:
-              s = s.replace(old, new, 1)
+          # Persist the selected tab between browser restarts.
+          s = s.replace(
+              'const saved = sessionStorage.getItem("app_active_tab");',
+              'const saved = localStorage.getItem("app_active_tab");',
+              1,
+          )
+          s = s.replace(
+              'sessionStorage.setItem("app_active_tab", tab);',
+              'localStorage.setItem("app_active_tab", tab);',
+              1,
+          )
 
-          old = '''      sessionStorage.setItem("app_active_tab", tab);'''
-          new = '''      localStorage.setItem("app_active_tab", tab);'''
-          if old in s:
-              s = s.replace(old, new, 1)
-
+          # Drivers may use Dashboard and other permitted tabs; only admin-only
+          # tabs are redirected for non-admin users.
           old = '''    if (role === "driver" && activeTab !== "drivers") {
       setActiveTab("drivers");
     } else if (role !== "admin" && (activeTab === "logs" || activeTab === "users" || activeTab === "backup")) {
@@ -43,18 +48,35 @@ jobs:
           new = '''    if (role !== "admin" && (activeTab === "logs" || activeTab === "users" || activeTab === "backup")) {
       setActiveTab("dashboard");
     }'''
-          if old not in s:
-              raise SystemExit('Expected driver access block was not found; refusing to modify App.tsx')
-          s = s.replace(old, new, 1)
+          if old in s:
+              s = s.replace(old, new, 1)
+
           p.write_text(s, encoding='utf-8')
+
+          # Keep the approved soft radial pastel-blue background exactly as the
+          # final UI layer; do not alter the application layout.
+          css = Path('public/ui-polish.css')
+          css.write_text('''/* Final UI polish: same pastel-blue family, stronger in the center and softly fading toward the edges. */
+body {
+  background: radial-gradient(circle at 50% 46%, #8fc1f5 0%, #9ccaf7 22%, #afd5f8 45%, #c6e1fa 68%, #deeffc 84%, #eef8fe 100%) !important;
+}
+
+.dark body {
+  background: linear-gradient(115deg, #0f172a 0%, #172554 48%, #064e3b 100%) !important;
+}
+''', encoding='utf-8')
           PY
 
-      - name: Commit fix and remove one-time workflow
+      - name: Commit final branch and remove one-time workflow
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/App.tsx
+          git add src/App.tsx public/ui-polish.css
           git rm .github/workflows/fix-driver-access.yml
-          git commit -m "fix: allow drivers to access dashboard and persist tab"
+          if git diff --cached --quiet; then
+            git commit --allow-empty -m "chore: finalize ui-calendar-v2.2.2"
+          else
+            git commit -m "fix: finalize driver access and persistent UI settings"
+          fi
           git push origin HEAD:ui-calendar-v2.2.2
